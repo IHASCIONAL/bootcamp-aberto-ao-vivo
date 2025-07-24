@@ -5,7 +5,7 @@ from airflow.decorators import dag, task
 from datetime import datetime
 
 @dag(
-        dag_id="Dag do IHAS",
+        dag_id="dag_do_ihas",
         description="minha etl braba",
         schedule="5 0 * 8 *",
         start_date=datetime(2024, 3, 24),
