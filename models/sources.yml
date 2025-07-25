@@ -1,0 +1,8 @@
+sources:
+  - name: bronze
+    database: bronze_kxtz
+    schema: bronze
+    tables:
+
+       - name: google_sheets_Pagina1
+         descrpiton: "Dados importados do Google Sheets."
