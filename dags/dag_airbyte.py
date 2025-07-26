@@ -1,37 +1,38 @@
-from airflow import DAG
+from airflow.decorators import dag
+from airflow.providers.http.operators.http import HttpOperator
 from airflow.models import Variable
-from airflow.providers.airbyte.operators.airbyte import AirbyteTriggerSyncOperator
-from airflow.providers.airbyte.sensors.airbyte import AirbyteJobSensor
-from datetime import datetime, timedelta
+from datetime import datetime
+import json
 
 AIRBYTE_CONNECTION_ID = Variable.get("AIRBYTE_GOOGLE_POSTGRES_CONNECTION_ID")
 API_KEY = f"Bearer {Variable.get('AIRBYTE_API_TOKEN')}"
 
-with DAG(
-    dag_id="meu_airbyte_trabalhoso",
-    schedule="@daily",
+@dag(
     start_date=datetime(2025, 7, 25),
-    dagrun_timeout=timedelta(minutes=1),
-    tags=["airbyte"],
+    schedule="@daily",
     catchup=False,
-) as dag:
-    # [START howto_operator_airbyte_synchronous]
+    tags=["airbyte"]
+)
+def running_airbyte():
 
-
-    sync_source_destination = AirbyteTriggerSyncOperator(
-        task_id="airbyte_sync_source_dest_example",
-        connection_id=AIRBYTE_CONNECTION_ID,
-        airbyte_conn_id="airbyte_conn",
-        asynchronous=False,
-        timeout=3600,
-        wait_seconds=3
+    trigger_sync = HttpOperator(
+        task_id="trigger_airbyte_sync",
+        http_conn_id="airbyte-conn",  # Esse conn deve estar configurado na UI do Airflow
+        endpoint="v1/jobs",           # sem "/" no começo evita alguns problemas
+        method="POST",
+        headers={
+            "Content-Type": "application/json",
+            "User-Agent": "fake-useragent",
+            "Accept": "application/json",
+            "Authorization": API_KEY
+        },
+        data=json.dumps({
+            "connectionId": AIRBYTE_CONNECTION_ID,
+            "jobType": "sync"
+        }),
+        log_response=True
     )
 
-    sync_source_destination
+    return trigger_sync
 
-
-
-
-
-
-
+dag_instance = running_airbyte()
