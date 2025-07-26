@@ -17,18 +17,15 @@ def running_airbyte():
 
     trigger_sync = HttpOperator(
         task_id="trigger_airbyte_sync",
-        http_conn_id="airbyte-conn",  # Esse conn deve estar configurado na UI do Airflow
-        endpoint="v1/jobs",           # sem "/" no começo evita alguns problemas
+        http_conn_id="airbyte-conn",
+        endpoint="api/v1/connections/sync",
         method="POST",
         headers={
             "Content-Type": "application/json",
-            "User-Agent": "fake-useragent",
-            "Accept": "application/json",
             "Authorization": API_KEY
         },
         data=json.dumps({
-            "connectionId": AIRBYTE_CONNECTION_ID,
-            "jobType": "sync"
+            "connectionId": AIRBYTE_CONNECTION_ID
         }),
         log_response=True
     )
