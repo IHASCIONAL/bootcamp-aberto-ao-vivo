@@ -1,24 +1,37 @@
-from airflow.decorators import dag
+from airflow import DAG
 from airflow.models import Variable
 from airflow.providers.airbyte.operators.airbyte import AirbyteTriggerSyncOperator
-from datetime import datetime
+from airflow.providers.airbyte.sensors.airbyte import AirbyteJobSensor
+from datetime import datetime, timedelta
 
 AIRBYTE_CONNECTION_ID = Variable.get("AIRBYTE_GOOGLE_POSTGRES_CONNECTION_ID")
 API_KEY = f"Bearer {Variable.get('AIRBYTE_API_TOKEN')}"
 
-@dag(start_date=datetime(2025, 7, 25), schedule="@daily", catchup=False, tags=["airbyte"])
-def running_airbyte():
+with DAG(
+    dag_id="meu_airbyte_trabalhoso",
+    schedule="@daily",
+    start_date=datetime(2025, 7, 25),
+    dagrun_timeout=timedelta(minutes=1),
+    tags=["airbyte"],
+    catchup=False,
+) as dag:
+    # [START howto_operator_airbyte_synchronous]
 
-    start_sync = AirbyteTriggerSyncOperator(
-        task_id='start_airbyte_sync',
-        airbyte_conn_id='airbyte_conn',
+
+    sync_source_destination = AirbyteTriggerSyncOperator(
+        task_id="airbyte_sync_source_dest_example",
         connection_id=AIRBYTE_CONNECTION_ID,
+        airbyte_conn_id="airbyte_conn",
         asynchronous=False,
         timeout=3600,
         wait_seconds=3
     )
 
-    # Aqui você pode encadear outras tarefas, se necessário
-    # Exemplo: start_sync >> outra_tarefa
+    sync_source_destination
 
-dag_instance = running_airbyte()
+
+
+
+
+
+
