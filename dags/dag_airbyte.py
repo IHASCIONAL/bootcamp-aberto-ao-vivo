@@ -9,7 +9,7 @@ API_KEY = f"Bearer {Variable.get('AIRBYTE_API_TOKEN')}"
 @dag(start_date=datetime(2025, 7, 25), schedule="@daily", catchup=False, tags=["airbyte"])
 def running_airbyte():
 
-    operador = AirbyteTriggerSyncOperator(
+    start_sync = AirbyteTriggerSyncOperator(
         task_id='start_airbyte_sync',
         airbyte_conn_id='airbyte_conn',
         connection_id=AIRBYTE_CONNECTION_ID,
@@ -18,6 +18,7 @@ def running_airbyte():
         wait_seconds=3
     )
 
-    operador 
+    # Aqui você pode encadear outras tarefas, se necessário
+    # Exemplo: start_sync >> outra_tarefa
 
-running_airbyte() 
+dag_instance = running_airbyte()
