@@ -1,35 +1,23 @@
 from airflow.decorators import dag
-from airflow.providers.http.operators.http import HttpOperator
-from airflow.providers.http.sensors.http import HttpSensor
 from airflow.models import Variable
-import json
+from airflow.providers.airbyte.operators.airbyte import AirbyteTriggerSyncOperator
 from datetime import datetime
 
 AIRBYTE_CONNECTION_ID = Variable.get("AIRBYTE_GOOGLE_POSTGRES_CONNECTION_ID")
 API_KEY = f"Bearer {Variable.get('AIRBYTE_API_TOKEN')}"
 
-@dag(start_date=datetime(2025,7,25), schedule="@daily", catchup=False)
-
+@dag(start_date=datetime(2025, 7, 25), schedule="@daily", catchup=False, tags=["airbyte"])
 def running_airbyte():
 
-    start_airbyte_sync = HttpOperator(
-            task_id="start_airbyte_sync",
-            http_conn_id="airbyte-conn",
-            endpoint=f"/v1/jobs",
-            method="POST",
-            headers={
-                "Content-Type":"application/json",
-                "User-Agent":"fake-useragent",
-                "Accept":"application/json",
-                "Authorization":API_KEY
-            },
-            data=json.dumps({
-                "connectionId": AIRBYTE_CONNECTION_ID, "jobType":"sync"
-            }),
-            response_check=lambda response: response.json()['status'] == 'running'
+    operador = AirbyteTriggerSyncOperator(
+        task_id='start_airbyte_sync',
+        airbyte_conn_id='airbyte_conn',
+        connection_id=AIRBYTE_CONNECTION_ID,
+        asynchronous=False,
+        timeout=3600,
+        wait_seconds=3
     )
 
-    start_airbyte_sync
+    operador 
 
-
-running_airbyte()
+running_airbyte() 
